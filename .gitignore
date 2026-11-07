@@ -1,0 +1,10 @@
+dist/
+node_modules/
+output/
+materiais/
+.agents/
+.github/
+referência/
+meu cv
+scripts/__pycache__/
+*.pyc
