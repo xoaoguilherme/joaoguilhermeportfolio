@@ -30,4 +30,4 @@ Conecte este repositório ao Cloudflare Pages usando a branch `main`, comando de
 
 O portfólio anterior marca alguns indicadores de campanhas como **ilustrativos**. Esses números não foram reproduzidos aqui como resultados reais. Os vídeos usados nos perfis navegáveis preservam a resolução dos melhores arquivos disponíveis em `materiais/`.
 
-Os seis indicadores da faixa abaixo da abertura foram informados pelo proprietário em 7 de novembro de 2026: mais de 15 marcas, 7 milhões de visualizações, mais de 3.500 leads gerados, 5 mil ingressos, até R$ 100 mil em vendas em uma campanha e 150 mil visitas somadas aos sites. Não há relatórios de comprovação anexados a este repositório.
+Os cinco indicadores da faixa abaixo da abertura foram informados pelo proprietário em 7 de novembro de 2026: mais de 15 marcas, 7 milhões de visualizações, mais de 3.500 leads gerados, até R$ 100 mil em vendas em uma campanha e 150 mil visitas somadas aos sites. Não há relatórios de comprovação anexados a este repositório. No celular, cada indicador aparece por alguns segundos antes de dar lugar ao próximo; no computador, a faixa é contínua.

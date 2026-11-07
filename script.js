@@ -852,9 +852,41 @@ window.matchMedia("(max-width: 600px)").addEventListener("change", (event) => {
 
 const header = document.querySelector(".site-header");
 const resultsStrip = document.querySelector(".results-strip");
-resultsStrip.querySelector(".results-viewport").addEventListener("click", () => {
-  resultsStrip.classList.toggle("is-paused");
+const resultsViewport = resultsStrip.querySelector(".results-viewport");
+const resultItems = [...resultsStrip.querySelectorAll(".results-list:not([aria-hidden]) li")];
+const resultsMobile = window.matchMedia("(max-width: 600px)");
+let resultIndex = 0;
+let resultsVisible = !('IntersectionObserver' in window);
+if ('IntersectionObserver' in window) {
+  new IntersectionObserver(([entry]) => {
+    resultsVisible = entry.isIntersecting;
+  }, { threshold: 0.25 }).observe(resultsStrip);
+}
+resultsViewport.addEventListener("click", () => {
+  const paused = resultsStrip.classList.toggle("is-paused");
+  resultsViewport.setAttribute(
+    "aria-label",
+    paused
+      ? "Resultados pausados. Toque para retomar a animação"
+      : "Resultados em sequência. Toque para pausar ou retomar a animação",
+  );
 });
+window.setInterval(() => {
+  if (
+    !resultsMobile.matches ||
+    !motionAllowed ||
+    !resultsVisible ||
+    document.hidden ||
+    resultsStrip.classList.contains("is-paused") ||
+    resultsViewport.matches(":focus-visible")
+  ) return;
+  const previous = resultItems[resultIndex];
+  previous.classList.remove("is-current");
+  previous.classList.add("is-leaving");
+  resultIndex = (resultIndex + 1) % resultItems.length;
+  resultItems[resultIndex].classList.add("is-current");
+  window.setTimeout(() => previous.classList.remove("is-leaving"), 520);
+}, 5600);
 const menuToggle = document.querySelector(".menu-toggle");
 function closeMenu() {
   menuToggle.setAttribute("aria-expanded", "false");
