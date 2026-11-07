@@ -852,17 +852,8 @@ window.matchMedia("(max-width: 600px)").addEventListener("change", (event) => {
 
 const header = document.querySelector(".site-header");
 const resultsStrip = document.querySelector(".results-strip");
-const resultsPause = resultsStrip.querySelector(".results-pause");
-resultsPause.addEventListener("click", () => {
-  const paused = resultsStrip.classList.toggle("is-paused");
-  resultsPause.setAttribute("aria-pressed", String(paused));
-  resultsPause.setAttribute(
-    "aria-label",
-    paused ? "Retomar passagem dos resultados" : "Pausar passagem dos resultados",
-  );
-  resultsPause.innerHTML = paused
-    ? '<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m5 3 8 5-8 5V3Z" fill="currentColor" /></svg>'
-    : '<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M5 3v10M11 3v10" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>';
+resultsStrip.querySelector(".results-viewport").addEventListener("click", () => {
+  resultsStrip.classList.toggle("is-paused");
 });
 const menuToggle = document.querySelector(".menu-toggle");
 function closeMenu() {
