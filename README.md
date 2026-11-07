@@ -29,3 +29,5 @@ Conecte este repositório ao Cloudflare Pages usando a branch `main`, comando de
 - Ilustrações 3D da abertura em `assets/hero/`: imagens conceituais geradas para representar criação, conteúdo social e sites. As telas não mostram projetos reais.
 
 O portfólio anterior marca alguns indicadores de campanhas como **ilustrativos**. Esses números não foram reproduzidos aqui como resultados reais. Os vídeos usados nos perfis navegáveis preservam a resolução dos melhores arquivos disponíveis em `materiais/`.
+
+Os sete indicadores da faixa abaixo da abertura foram informados pelo proprietário em 7 de novembro de 2026: mais de 15 marcas, 7 milhões de visualizações, 2 mil leads, 5 mil ingressos, até R$ 100 mil em vendas em uma campanha, mais de 100 alunos captados e 150 mil visitas somadas aos sites. Não há relatórios de comprovação anexados a este repositório.
