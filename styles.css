@@ -899,6 +899,13 @@ video:focus-visible {
   font-weight: 700;
   cursor: pointer;
 }
+.video-control-icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+  margin: auto;
+  fill: currentColor;
+}
 .work-video-controls button:disabled {
   opacity: 0.78;
   cursor: default;

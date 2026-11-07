@@ -73,6 +73,7 @@ const campaigns = {
         poster: "assets/work/feijuca.jpg",
         alt: "Vídeo da campanha Feijuca Querubina",
         label: "Vídeo",
+        hasAudio: false,
       },
       {
         type: "video",
@@ -360,6 +361,33 @@ const workTabs = [...document.querySelectorAll(".work-choice")];
 const siteTabs = [...document.querySelectorAll(".site-tab")];
 let currentProject = "rg";
 let currentMediaIndex = 0;
+let navigableAudioPreference = null;
+
+function noteNavigableInteraction() {
+  if (navigableAudioPreference === null) navigableAudioPreference = true;
+}
+
+function updatePlayButton(button, playing) {
+  button.innerHTML = playing
+    ? '<svg class="video-control-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>'
+    : '<svg class="video-control-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5.5 19 12 8 18.5Z"/></svg>';
+  button.setAttribute("aria-label", playing ? "Pausar vídeo" : "Reproduzir vídeo");
+}
+
+function updateSoundButton(button, video) {
+  button.textContent = video.muted ? "Som" : "Mudo";
+  button.setAttribute("aria-label", video.muted ? "Ativar som" : "Silenciar vídeo");
+}
+
+function playNavigableVideo(video, soundButton) {
+  video.play().catch(() => {
+    if (!video.muted) {
+      video.muted = true;
+      if (soundButton && !soundButton.disabled) updateSoundButton(soundButton, video);
+      video.play().catch(() => {});
+    }
+  });
+}
 
 function animateChange(element, enabled, { axis = "y", distance = 10, duration = 300 } = {}) {
   if (!enabled || !motionAllowed || !element.animate) return;
@@ -376,17 +404,17 @@ function animateChange(element, enabled, { axis = "y", distance = 10, duration =
 
 function attachVideoControls(video, container, { autoplay = false, silent = false } = {}) {
   video.controls = false;
-  video.muted = true;
+  video.muted = silent || navigableAudioPreference !== true;
   const controls = document.createElement("div");
   controls.className = "work-video-controls";
   const play = document.createElement("button");
   play.type = "button";
-  play.textContent = "▶";
-  play.setAttribute("aria-label", "Reproduzir vídeo");
+  updatePlayButton(play, false);
   const sound = document.createElement("button");
   sound.type = "button";
-  sound.textContent = silent ? "Sem áudio" : "Som";
-  sound.setAttribute("aria-label", silent ? "Vídeo sem áudio" : "Ativar som");
+  sound.textContent = silent ? "Sem áudio" : "";
+  if (silent) sound.setAttribute("aria-label", "Vídeo sem áudio");
+  else updateSoundButton(sound, video);
   sound.disabled = silent;
   const progress = document.createElement("input");
   progress.type = "range";
@@ -396,16 +424,22 @@ function attachVideoControls(video, container, { autoplay = false, silent = fals
   progress.disabled = true;
   progress.setAttribute("aria-label", "Avançar vídeo");
   const togglePlay = () => {
-    if (video.paused) video.play().catch(() => {});
-    else video.pause();
+    if (video.paused) {
+      if (!silent) {
+        noteNavigableInteraction();
+        video.muted = navigableAudioPreference !== true;
+        updateSoundButton(sound, video);
+      }
+      playNavigableVideo(video, sound);
+    } else video.pause();
   };
   play.addEventListener("click", togglePlay);
   video.addEventListener("click", togglePlay);
   if (!silent) {
     sound.addEventListener("click", () => {
       video.muted = !video.muted;
-      sound.textContent = video.muted ? "Som" : "Mudo";
-      sound.setAttribute("aria-label", video.muted ? "Ativar som" : "Silenciar vídeo");
+      navigableAudioPreference = !video.muted;
+      updateSoundButton(sound, video);
     });
   }
   const updateSeekAvailability = () => {
@@ -422,17 +456,15 @@ function attachVideoControls(video, container, { autoplay = false, silent = fals
       progress.value = String((video.currentTime / video.duration) * 100);
   });
   video.addEventListener("play", () => {
-    play.textContent = "Ⅱ";
-    play.setAttribute("aria-label", "Pausar vídeo");
+    updatePlayButton(play, true);
   });
   video.addEventListener("pause", () => {
-    play.textContent = "▶";
-    play.setAttribute("aria-label", "Reproduzir vídeo");
+    updatePlayButton(play, false);
   });
   video.addEventListener("ended", () => { progress.value = "0"; });
   controls.append(play, progress, sound);
   container.append(controls);
-  if (autoplay && motionAllowed && !document.hidden) video.play().catch(() => {});
+  if (autoplay && motionAllowed && !document.hidden) playNavigableVideo(video, sound);
 }
 
 function selectMedia(index, animate = true) {
@@ -448,7 +480,6 @@ function selectMedia(index, animate = true) {
     element.preload = "metadata";
     element.playsInline = true;
     element.poster = navigableAsset(item.poster);
-    element.muted = true;
     element.setAttribute("aria-label", item.alt);
     const source = document.createElement("source");
     source.src = navigableAsset(item.src);
@@ -465,7 +496,11 @@ function selectMedia(index, animate = true) {
   workMedia.classList.toggle("is-landscape", item.fit === "contain");
   workMedia.querySelector("video")?.pause();
   workMedia.replaceChildren(element);
-  if (item.type === "video") attachVideoControls(element, workMedia, { autoplay: true });
+  if (item.type === "video")
+    attachVideoControls(element, workMedia, {
+      autoplay: true,
+      silent: item.hasAudio === false,
+    });
   document.getElementById("work-count").textContent =
     `${String(currentMediaIndex + 1).padStart(2, "0")} / ${String(campaigns[currentProject].media.length).padStart(2, "0")}`;
   animateChange(workMedia, animate, { axis: "x", distance: 9 * direction, duration: 210 });
@@ -534,28 +569,25 @@ function showStory(index) {
     media.poster = navigableAsset(item.poster);
     media.playsInline = true;
     media.preload = "metadata";
-    media.muted = true;
+    media.muted = navigableAudioPreference !== true;
     media.setAttribute("aria-label", item.alt);
     media.addEventListener("ended", () => advanceStory(1));
     media.addEventListener("play", () => {
-      storyPlay.textContent = "Ⅱ";
-      storyPlay.setAttribute("aria-label", "Pausar vídeo");
+      updatePlayButton(storyPlay, true);
     });
     media.addEventListener("pause", () => {
-      storyPlay.textContent = "▶";
-      storyPlay.setAttribute("aria-label", "Reproduzir vídeo");
+      updatePlayButton(storyPlay, false);
     });
-    storyPlay.textContent = "▶";
-    storyPlay.setAttribute("aria-label", "Reproduzir vídeo");
-    storySound.textContent = "Som";
-    storySound.setAttribute("aria-label", "Ativar som");
+    updatePlayButton(storyPlay, false);
+    updateSoundButton(storySound, media);
   } else {
     media.src = navigableAsset(item.src);
     media.alt = item.alt;
     if (motionAllowed) storyTimer = setTimeout(() => advanceStory(1), 6500);
   }
   storyMedia.replaceChildren(media);
-  if (item.type === "video" && motionAllowed) media.play().catch(() => {});
+  if (item.type === "video" && motionAllowed)
+    playNavigableVideo(media, storySound);
   storyProgress.replaceChildren(
     ...rgStories.map((_, i) => {
       const segment = document.createElement("span");
@@ -575,6 +607,7 @@ function advanceStory(direction) {
 
 storyOpen.addEventListener("click", () => {
   if (currentProject !== "rg") return;
+  noteNavigableInteraction();
   workMedia.querySelector("video")?.pause();
   document.querySelector(".phone-screen").inert = true;
   storyViewer.hidden = false;
@@ -593,18 +626,19 @@ document
 storyPlay.addEventListener("click", () => {
   const video = storyMedia.querySelector("video");
   if (!video) return;
-  if (video.paused) video.play().catch(() => {});
-  else video.pause();
+  if (video.paused) {
+    noteNavigableInteraction();
+    video.muted = navigableAudioPreference !== true;
+    updateSoundButton(storySound, video);
+    playNavigableVideo(video, storySound);
+  } else video.pause();
 });
 storySound.addEventListener("click", () => {
   const video = storyMedia.querySelector("video");
   if (!video) return;
   video.muted = !video.muted;
-  storySound.textContent = video.muted ? "Som" : "Mudo";
-  storySound.setAttribute(
-    "aria-label",
-    video.muted ? "Ativar som" : "Silenciar",
-  );
+  navigableAudioPreference = !video.muted;
+  updateSoundButton(storySound, video);
 });
 storyViewer.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closeStory();
@@ -643,14 +677,16 @@ storyMedia.addEventListener("click", (event) => {
 
 document
   .getElementById("work-prev")
-  .addEventListener("click", (event) =>
-    selectMedia(currentMediaIndex - 1, event.detail !== 0),
-  );
+  .addEventListener("click", (event) => {
+    noteNavigableInteraction();
+    selectMedia(currentMediaIndex - 1, event.detail !== 0);
+  });
 document
   .getElementById("work-next")
-  .addEventListener("click", (event) =>
-    selectMedia(currentMediaIndex + 1, event.detail !== 0),
-  );
+  .addEventListener("click", (event) => {
+    noteNavigableInteraction();
+    selectMedia(currentMediaIndex + 1, event.detail !== 0);
+  });
 document.getElementById("work-panel").addEventListener("keydown", (event) => {
   if (
     !storyViewer.hidden ||
@@ -659,6 +695,7 @@ document.getElementById("work-panel").addEventListener("keydown", (event) => {
   )
     return;
   event.preventDefault();
+  noteNavigableInteraction();
   selectMedia(currentMediaIndex + (event.key === "ArrowRight" ? 1 : -1), false);
 });
 let workSwipeStart = null;
@@ -672,13 +709,15 @@ workMedia.addEventListener("pointerup", (event) => {
   const dy = event.clientY - workSwipeStart.y;
   workSwipeStart = null;
   if (Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy)) return;
+  noteNavigableInteraction();
   selectMedia(currentMediaIndex + (dx < 0 ? 1 : -1));
 });
 
 workTabs.forEach((tab) =>
-  tab.addEventListener("click", (event) =>
-    selectProject(tab.dataset.project, event.detail !== 0),
-  ),
+  tab.addEventListener("click", (event) => {
+    noteNavigableInteraction();
+    selectProject(tab.dataset.project, event.detail !== 0);
+  }),
 );
 document.querySelector(".work-choices").addEventListener("keydown", (event) => {
   if (
@@ -704,6 +743,7 @@ document.querySelector(".work-choices").addEventListener("keydown", (event) => {
             workTabs.length) %
           workTabs.length;
   workTabs[next].focus();
+  noteNavigableInteraction();
   selectProject(workTabs[next].dataset.project, false);
 });
 
