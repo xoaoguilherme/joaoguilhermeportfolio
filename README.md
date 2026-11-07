@@ -1,5 +1,7 @@
 # Portfólio de João Guilherme
 
+**Site publicado:** [joaoguilhermeportfolio.pages.dev](https://joaoguilhermeportfolio.pages.dev/)
+
 Site estático em HTML, CSS e JavaScript. A direção visual usa a paleta enviada em `referência/paleta de cores.jpg` e interpreta a referência `referência/estilo site.jpg` com traços, tipografia expressiva e trabalhos reais.
 
 ## Rodar e gerar o site
